@@ -120,10 +120,13 @@ class StateMachine(object):
     def __init__(self,
                  name: Text,
                  desc: Text = None,
+                 model: object = None,
                  *args, **kwargs):
         self._state = None
         self._name = name
         self._desc = desc
+        self._model = model
+
         self._first_run = True
         try:
             # Perform once-only static initialization for the given subclass
