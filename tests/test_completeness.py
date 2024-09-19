@@ -143,10 +143,6 @@ class TestMachineWithoutTransCondImpl(TestCase):
 
 
 class NormalStateMachine(StateMachine):
-    def __init__(self, client, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._client = client
-
     state_a1 = State('state_a1', initial=True)
     state_a2 = State('state_a2')
     state_a3 = State('state_a3', final=True)
