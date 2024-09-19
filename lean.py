@@ -6,9 +6,8 @@ from threading import Lock
 from types import coroutine
 from typing import List, Callable, Text, Union, Mapping, Any
 
-from common import GLOBAL_LOGGING_LEVEL, debug
 
-
+GLOBAL_LOGGING_LEVEL=logging.INFO
 logging.basicConfig(level=GLOBAL_LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
 
