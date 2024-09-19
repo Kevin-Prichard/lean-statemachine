@@ -20,7 +20,7 @@ class SMWithoutInitialState(StateMachine):
 
 
 class TestMissingInitialState(TestCase):
-    def test_plural_initial_states(self):
+    def test_missing_initial_states(self):
         with pytest.raises(StateException):
             SMWithoutInitialState()
 
@@ -37,7 +37,7 @@ class SMWithoutFinalState(StateMachine):
 
 
 class TestMissingFinalState(TestCase):
-    def test_plural_initial_states(self):
+    def test_missing_final_state(self):
         with pytest.raises(StateException):
             SMWithoutFinalState()
 
