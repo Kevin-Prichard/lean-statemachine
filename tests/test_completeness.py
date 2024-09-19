@@ -257,7 +257,44 @@ class TestNormalMachineWithAllEvents(TestCase):
         self.assertEqual(sm._events_called - ALL_EXPECTED_EVENTS, set())
 
 
-class GumballMachine(StateMachine):
+######################################################################
+
+
+COIN_DROP = "coin_inserted"
+
+class GumballMachineHardware:
+    def __init__(self):
+        self._hardware = Box(
+            coin_slot=False,
+            speaker_play=lambda filename: logger.info("Speaker plays %s", filename),
+            crank_position=0,
+            leds=lambda *args: logger.info("LEDs play: %s", str(args))
+
+        )
+
+    def coin_slot(self, action):
+        if action == "read":
+            return self._hardware.coin_slot
+        else:
+            self._hardware.coin_slot = action
+
+    def leds(self, action, color):
+        self._hardware.leds(action, color)
+
+    def is_crank_turning(self):
+        return self._hardware.crank_position != 0
+
+    def turn_crank(self, degrees):
+        self._hardware.crank_position = degrees
+
+    def gumball_dispensed(self):
+        return self._hardware.crank_position == 0
+
+    def sound_play(self, sound_file):
+        self._hardware.speaker_play(sound_file)
+
+
+class GumballStateMachine(StateMachine):
     ready = State('ready', initial=True,
                   desc='The machine is at rest and ready to begin a '
                        'purchase cycle')
@@ -274,31 +311,54 @@ class GumballMachine(StateMachine):
                                 'position')
 
     paying = ready.to(
-        coin_dropped, name='coin_inserted',
-        cond='is_coin_inserted',
+        coin_dropped, cond='is_coin_inserted',
         desc='A coin has been inserted into the machine')
     cranking = coin_dropped.to(
-        crank_turned, name='crank_turned',
-        cond='is_crank_turning', desc='The crank has been turned')
+        crank_turned, cond='is_crank_turning',
+        desc='The crank has been turned')
     dispensing = crank_turned.to(
-        gumball_dispensed, name='gumball_dispensed',
-        cond='on_gumball_dispensed', desc='A gumball has been dispensed')
+        gumball_dispensed, cond='was_gumball_dispensed',
+        desc='A gumball has been dispensed')
     finishing = gumball_dispensed.to(
-        crank_returned, name='crank_returned', cond='on_crank_returned',
+        crank_returned, cond='on_crank_returned',
         desc='The crank has been returned to its original position')
 
-    def is_coin_inserted(self, trans):
-        return self.hardware.coin_slot("read") == "coin_inserted"
+    def is_coin_inserted(self, event):
+        return self._model.coin_slot("read") == COIN_DROP
 
-    def on_coin_inserting(self, trans):
+    def on_paying(self, event):
         logger.info("Coin being inserted")
-        self.hardware.leds("blink", "green")
-        self.hardware.speaker("play", "coin_inserted")
+        self._model.leds("blink", "green")
+        self._model.sound_play("coin_inserted")
 
-    def is_crank_turning(self, trans):
-        return self.hardware.crank("position") != 0
+    def is_crank_turning(self, event):
+        return self._model.crank("position") != 0
 
-    def on_crank_turned(self, trans):
+    def on_dispensing(self, event):
+        self._model.finished
+
+    def was_gumball_dispensed(self, event):
+        return self._model.gumball_dispensed()
+
+    def on_crank_returned(self, event):
         logger.info("Crank turning")
-        self.hardware.leds("blink", "green")
-        self.hardware.speaker("play", "crank_turned")
+        self._model.leds("blink", "green")
+        self._model.sound_play("crank_turned")
+
+
+class TestGumballStateMachine(TestCase):
+    def setUp(self):
+        self.gmh = GumballMachineHardware()
+        self.gsm = GumballStateMachine(
+            name="Gumball machine controller",
+            desc="Demo of a gumball machine",
+            model=self.gmh)
+
+    def test_ready(self):
+        self.assertEqual(self.gsm.state, GumballStateMachine.ready)
+
+    def test_coin_insert(self):
+        self.assertEqual(self.gsm.state, GumballStateMachine.ready)
+        self.gmh.coin_slot(COIN_DROP)
+        self.gsm.cycle()
+        self.assertEqual(self.gsm.state, GumballStateMachine.coin_dropped)
