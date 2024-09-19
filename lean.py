@@ -179,8 +179,8 @@ class StateMachine(object):
                         getattr(cls, cond_name, None) is None):
                     raise TransitionException(
                         f"Transition {attrib.name} has no 'cond' param, or "
-                        f"condition method, "
-                        f"{cls.__name__}.{cond_name} needs implementing")
+                        f"condition method "
+                        f"'{cls.__name__}.{cond_name}' needs implementing")
                 cls._transitions[attrib.state1].add(attrib)
 
         if not cls._initial_state:
