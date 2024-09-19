@@ -1,8 +1,9 @@
 import logging
 from unittest import TestCase
 
-from common import debug
-from leanmachine.lean import (
+from box import Box
+
+from lean import (
     StateMachine, State, StateException, TransitionException,
     StateMachineException)
 
