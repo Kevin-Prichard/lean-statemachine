@@ -72,10 +72,10 @@ class Transition(object):
     """
 
     def __init__(self,
-                 name: Text,
                  state1: State,
                  state2: State,
                  cond: Union[Text, Callable],
+                 name: Text = None,
                  desc: Text = None
                  ):
         self._name = name
