@@ -14,19 +14,8 @@ pip install lean-statemachine
 ```
 
 ## Usage
-For example:
-```python
-from leanmachine import StateMachine, State
+For example, see examples/gumball_machine.py
 
-class GumballMachine(StateMachine):
-    ready = State('ready', 'The machine is at rest and ready to begin a purchase cycle', initial=True)
-    coin_dropped = State('coin_dropped', 'A coin has been inserted into the machine')
-    crank_turned = State('crank_turned', 'The crank has been turned, and the machine is moving a gumball into the dispenser slot')
-    gumball_dispensed = State('gumball_dispensed', 'A gumball has been dispensed to the customer')
-    crank_returned = State('crank_returned', 'The crank has been returned to its original position', final=True)
+In the GumballStateMachine example, we pass in an instance of GumballMachineHardware, providing a context / reference to an API external to the state machine subclass.  This allows callbacks to query physical state in order to prompt state change in the state machine, as well as activate API and/or hardware features in response to the state machine's events and changing state.
 
-    ready.to(coin_dropped, name='coin_inserted', cond='on_coin_inserted', description='A coin has been inserted into the machine')
-    coin_dropped.to(crank_turned, name='crank_turned', cond='on_crank_turned', description='The crank has been turned')
-    crank_turned.to(gumball_dispensed, name='gumball_dispensed', cond='on_gumball_dispensed', description='A gumball has been dispensed')
-    gumball_dispensed.to(crank_returned, name='crank_returned', cond='on_crank_returned', description='The crank has been returned to its original position')
-
+This keeps intact the boundary between state machines' internal state tracking, and the actual implementation of the processes and/or physical machines that they represent.
