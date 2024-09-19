@@ -183,6 +183,20 @@ class StateMachine(object):
                         f"'{cls.__name__}.{cond_name}' needs implementing")
                 cls._transitions[attrib.state1].add(attrib)
 
+                # Collect callbacks as partials, in proper firing order.
+                # At runtime the 'self' param will be added to provide correct
+                # context
+                callbacks = []
+                setattr(attrib, 'callbacks', callbacks)
+                for event_type, actor in [("before", attrib),
+                                          ("on_exit", attrib.state1),
+                                          ("on", attrib),
+                                          ("after", attrib),
+                                          ("on_enter", attrib.state2)]:
+                    if event_callback := getattr(
+                            cls, f"{event_type}_{actor.name}", None):
+                        callbacks.append(partial(event_callback, event=actor))
+
         if not cls._initial_state:
             raise StateException("One initial state must be defined")
         if not final_states:
@@ -220,18 +234,10 @@ class StateMachine(object):
         for trans in candidates:
             if condition_fn := getattr(klass, trans.cond, None):
                 if condition_fn(self, trans):
-                    # Entering a transition with matching condition..
-                    # Let's execute any defined callbacks
-                    for event_type, actor in [("before", trans),
-                                  ("on_exit", self._state),
-                                  ("on", trans),
-                                  ("after", trans),
-                                  ("on_enter", trans.state2)]:
-                        if event_callback := getattr(
-                                klass, f"{event_type}_{actor.name}", None):
-                            event_callback(self, actor)
-
-
+                    # Entered a transition with matching condition..
+                    # Let's execute any defined callbacks. with 'self' as context
+                    for callback in trans.callbacks:
+                        callback(self=self)
                     self._state = trans.state2
 
                     # Transition complete - we do not look for other matching transitions
