@@ -184,9 +184,8 @@ ALL_EXPECTED_EVENTS = {
 }
 
 class NormalStateMachineWithAllEvents(StateMachine):
-    def __init__(self, client, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._client = client
         self._events_called = set()
 
     state_a1 = State('state_a1', initial=True)
