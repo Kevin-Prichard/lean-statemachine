@@ -1,3 +1,4 @@
+import logging
 from unittest import TestCase
 
 from common import debug
@@ -6,6 +7,10 @@ from leanmachine.lean import (
     StateMachineException)
 
 import pytest
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class SMWithoutInitialState(StateMachine):
