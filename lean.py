@@ -133,7 +133,7 @@ class StateMachine(object):
             if mutex.acquire(blocking=True):
                 klass = self.__class__
                 if not klass.is_initialized:
-                    klass.static_init()
+                    klass.callbacks_init()
         finally:
             mutex.release()
         self._state = self._initial_state
@@ -148,10 +148,10 @@ class StateMachine(object):
         return self._state
 
     @classmethod
-    def static_init(cls):
+    def callbacks_init(cls):
         # Build indexes for state and transition callbacks
         #
-        # Note that we store the method function refs, not the bound methods
+        # Note that we store the method function refs, not the bound methods.
         # This distinction is important, because multiple instances of the same
         # StateMachine subclass will share the same callback methods, and this
         # ensures that we always provide the correct instance passed as 'self'.
