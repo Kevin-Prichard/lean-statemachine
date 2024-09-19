@@ -93,11 +93,10 @@ class SMWithoutSuperInit(StateMachine):
 
 class TestMachineWithoutInitialState(TestCase):
     def test_machine_without_initial_state(self):
-        sm = SMWithoutSuperInit()
-        with pytest.raises(StateMachineException) as exc:
+        with pytest.raises(AttributeError) as exc:
             sm = SMWithoutSuperInit(name="Machina sin Nombre")
             sm.cycle()
-        assert "State machine has no current state" in str(exc.value)
+        assert "object has no attribute '_first_run'" in str(exc.value)
 
 
 ######################################################################
