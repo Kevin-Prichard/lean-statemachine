@@ -22,7 +22,7 @@ class SMWithoutInitialState(StateMachine):
 class TestMissingInitialState(TestCase):
     def test_missing_initial_states(self):
         with pytest.raises(StateException):
-            SMWithoutInitialState()
+            SMWithoutInitialState(name="Machina sin Nombre")
 
 
 ######################################################################
@@ -39,7 +39,7 @@ class SMWithoutFinalState(StateMachine):
 class TestMissingFinalState(TestCase):
     def test_missing_final_state(self):
         with pytest.raises(StateException):
-            SMWithoutFinalState()
+            SMWithoutFinalState(name="Machina sin Nombre")
 
 
 ######################################################################
@@ -56,7 +56,7 @@ class SMWithPluralInitialStates(StateMachine):
 class TestPluralInitials(TestCase):
     def test_plural_initial_states(self):
         with pytest.raises(StateException):
-            SMWithPluralInitialStates()
+            SMWithPluralInitialStates(name="Machina sin Nombre")
 
 
 ######################################################################
@@ -72,7 +72,7 @@ class SMWithoutTransitions(StateMachine):
 class TestAbnormalMachines(TestCase):
     def test_machine_without_transitions(self):
         with pytest.raises(TransitionException) as exc:
-            SMWithoutTransitions()
+            SMWithoutTransitions(name="Machina sin Nombre")
         assert "No transitions defined" in str(exc.value)
 
 
@@ -95,6 +95,7 @@ class TestMachineWithoutInitialState(TestCase):
     def test_machine_without_initial_state(self):
         sm = SMWithoutSuperInit()
         with pytest.raises(StateMachineException) as exc:
+            sm = SMWithoutSuperInit(name="Machina sin Nombre")
             sm.cycle()
         assert "State machine has no current state" in str(exc.value)
 
@@ -114,7 +115,7 @@ class SMWithoutTransitionCondition(StateMachine):
 class TestMachineWithoutTransCond(TestCase):
     def test_machine_without_transition_condition(self):
         with pytest.raises(TransitionException) as exc:
-            sm = SMWithoutTransitionCondition()
+            sm = SMWithoutTransitionCondition(name="Machina sin Nombre")
             sm.cycle()
         assert "Transition trans1 has no 'cond' param," in str(exc.value)
 
@@ -134,7 +135,7 @@ class SMWithoutTransitionConditionImpl(StateMachine):
 class TestMachineWithoutTransCondImpl(TestCase):
     def test_machine_without_transition_condition_impl(self):
         with pytest.raises(TransitionException) as exc:
-            sm = SMWithoutTransitionConditionImpl()
+            sm = SMWithoutTransitionConditionImpl(name="Machina sin Nombre")
             sm.cycle()
         assert "Transition trans1 has no 'cond' param," in str(exc.value)
 
@@ -165,7 +166,7 @@ class TestNormalMachine(TestCase):
     def test_normal_machine(self):
         did_fail = False
         try:
-            sm = NormalStateMachine(client=None)
+            sm = NormalStateMachine(model=None, name="Machine com nombre")
             self.assertEqual(sm.state, NormalStateMachine.state_a1)
             sm.cycle()
             self.assertEqual(sm.state, NormalStateMachine.state_a2)
@@ -245,7 +246,7 @@ class NormalStateMachineWithAllEvents(StateMachine):
 class TestNormalMachineWithAllEvents(TestCase):
     def test_machine_without_transition_condition(self):
         did_fail = False
-        sm = NormalStateMachineWithAllEvents(client=None)
+        sm = NormalStateMachineWithAllEvents(name="Complete machine")
         try:
             self.assertEqual(sm.state,
                              NormalStateMachineWithAllEvents.state_a1)
