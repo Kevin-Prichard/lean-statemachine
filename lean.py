@@ -207,17 +207,22 @@ class StateMachine(object):
         klass = self.__class__
 
         if self._first_run:
-            self._first_run = False
-            if not getattr(self, '_state', None):
-                raise StateMachineException(
-                    "State machine has no current state. Did you forget to call "
-                    "super().__init__(*args, **kwargs) from your own __init__ method?")
+            try:
+                if mutex.acquire(blocking=True):
+                    self._first_run = False
+                    if not getattr(self, '_state', None):
+                        raise StateMachineException(
+                            "State machine has no current state. Ensure that "
+                            "you called super().__init__(*args, **kwargs) "
+                            "from your subclass __init__ method.")
 
-            if not klass._transitions:
-                raise TransitionException(
-                    "No transitions were found, or your StateMachine subclass "
-                    "is not calling super().__init__(*args, **kwargs) from its "
-                    "own __init__ method.")
+                    if not klass._transitions:
+                        raise TransitionException(
+                            "No transitions were found, or your StateMachine "
+                            "subclass is not calling super().__init__(*args, "
+                            "**kwargs) from its own __init__ method.")
+            finally:
+                mutex.release()
 
         if self._state.final:
             return False
@@ -226,27 +231,40 @@ class StateMachine(object):
         # unless the current state is marked final
         if not (candidates := klass._transitions.get(self._state, None)):
             raise TransitionException(
-                f"No transitions found for state {self._state}")
+                f"No transitions found from state: {self._state}")
 
         # Iterate the transitions from current state to other states
-        # and check conditions
+        # and check if their condition function matches current context
+        did_transition = False
         for trans in candidates:
             if condition_fn := getattr(klass, trans.cond, None):
                 if condition_fn(self, trans):
+                    did_transition = True
+
                     # Entered a transition with matching condition..
                     # Let's execute any defined callbacks. with 'self' as context
                     for callback in trans.callbacks:
                         callback(self=self)
+
+                    # Move to the next state
                     self._state = trans.state2
 
-                    # Transition complete - we do not look for other matching transitions
-                    # If any exist, they were erroneous defined by the programmer
+                    # Transition complete - we do not look for other matching
+                    # transitions
                     break
+            else:
+                raise TransitionException(
+                    f"Condition function {trans.cond} for transition "
+                    f"{str(trans)} is not yet implemented")
+
+        if not did_transition:
+            logger.warning(
+                "No transition or condition was found for state: "
+                "%s.  This is possibly due to the condition "
+                "function not correctly matching the current context.",
+                str(self._state))
 
     def __getitem__(self, item: Text, something=None) -> Any:
-        # if something is not None:
-        #     import pudb; pu.db
-        #     x = 12
         val = getattr(self, item, None)
         logger.debug("StateMachine.__getitem__(%s): %s", item,
                      str(val))
