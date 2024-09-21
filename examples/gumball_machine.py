@@ -32,14 +32,15 @@ class GumballMachineHardware:
     def leds(self, action, color):
         self._hardware.leds(action, color)
 
-    def is_crank_turning(self):
-        return self._hardware.crank_position != 0
+    def crank(self, command):
+        if command == 'position':
+            return self._hardware.crank_position
 
     def turn_crank(self, degrees):
         self._hardware.crank_position = degrees
 
     def gumball_dispensed(self):
-        return self._hardware.crank_position == 0
+        return self._hardware.crank_position == 360
 
     def sound_play(self, sound_file):
         self._hardware.speaker_play(sound_file)
@@ -71,7 +72,7 @@ class GumballStateMachine(StateMachine):
         gumball_dispensed, cond='was_gumball_dispensed',
         desc='A gumball has been dispensed')
     finishing = gumball_dispensed.to(
-        crank_returned, cond='on_crank_returned',
+        crank_returned, cond='is_crank_returned',
         desc='The crank has been returned to its original position')
 
     def is_coin_inserted(self, event):
@@ -86,12 +87,17 @@ class GumballStateMachine(StateMachine):
         return self._model.crank("position") != 0
 
     def on_dispensing(self, event):
-        self._model.finished
+        self._model.sound_play("kerplunk_gumball_dispensed")
+
+        # Reset position from 360 to 0
+        self._model.turn_crank(0)
 
     def was_gumball_dispensed(self, event):
         return self._model.gumball_dispensed()
 
-    def on_crank_returned(self, event):
-        logger.info("Crank turning")
-        self._model.leds("blink", "green")
-        self._model.sound_play("crank_turned")
+    def is_crank_returned(self, event):
+        return self._model.crank("position") == 0
+
+    def on_finishing(self, event):
+        self._model.leds("off", "green")
+        self._model.sound_play("crank_returned")
