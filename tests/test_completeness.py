@@ -173,18 +173,25 @@ class TestNormalMachine(TestCase):
 ######################################################################
 
 
-ALL_EXPECTED_EVENTS = {
-    'on_enter_state_a1', 'is_state_a1_to_a2', 'should_state_a2_to_a3',
-    'before_state_a1_to_a2', 'on_state_a1_to_a2', 'on_exit_state_a1',
-    'on_enter_state_a2', 'after_state_a1_to_a2', 'before_state_a2_to_a3',
-    'on_exit_state_a2', 'on_state_a2_to_a3', 'on_enter_state_a3',
-    'after_state_a2_to_a3'
-}
+ALL_EXPECTED_EVENTS = [
+    "is_state_a1_to_a2",
+    "before_state_a1_to_a2",
+    "on_exit_state_a1",
+    "on_state_a1_to_a2",
+    "after_state_a1_to_a2",
+    "on_enter_state_a2",
+    "should_state_a2_to_a3",
+    "before_state_a2_to_a3",
+    "on_exit_state_a2",
+    "on_state_a2_to_a3",
+    "after_state_a2_to_a3",
+    "on_enter_state_a3",
+]
 
 class NormalStateMachineWithAllEvents(StateMachine):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._events_called = set()
+        self._events_called = list()
 
     state_a1 = State('state_a1', initial=True)
     state_a2 = State('state_a2')
@@ -193,50 +200,59 @@ class NormalStateMachineWithAllEvents(StateMachine):
     state_a1_to_a2 = state_a1.to(state_a2, cond="is_state_a1_to_a2")
     state_a2_to_a3 = state_a2.to(state_a3, cond="should_state_a2_to_a3")
 
+    """
+    Every event callback is implemented, and every callback logs its name in
+    order.  This enables testing that all callbacks were called, and called 
+    in the correct order.
+    """
     def on_enter_state_a1(self, event):
-        self._events_called.add('on_enter_state_a1')
+        """
+        TODO: this never fires, because there is no transition to state_a1
+        which mewans that a mechanism is needed to trigger first states
+        """
+        self._events_called.append('on_enter_state_a1')
 
     def is_state_a1_to_a2(self, event):
-        self._events_called.add('is_state_a1_to_a2')
+        self._events_called.append('is_state_a1_to_a2')
         return True
 
     def should_state_a2_to_a3(self, event):
-        self._events_called.add('should_state_a2_to_a3')
+        self._events_called.append('should_state_a2_to_a3')
         return True
 
     def before_state_a1_to_a2(self, event):
-        self._events_called.add('before_state_a1_to_a2')
+        self._events_called.append('before_state_a1_to_a2')
 
     def on_state_a1_to_a2(self, event):
-        self._events_called.add('on_state_a1_to_a2')
+        self._events_called.append('on_state_a1_to_a2')
 
     def on_exit_state_a1(self, event):
-        self._events_called.add('on_exit_state_a1')
+        self._events_called.append('on_exit_state_a1')
 
     def on_enter_state_a2(self, event):
-        self._events_called.add('on_enter_state_a2')
+        self._events_called.append('on_enter_state_a2')
 
     def after_state_a1_to_a2(self, event):
-        self._events_called.add('after_state_a1_to_a2')
+        self._events_called.append('after_state_a1_to_a2')
 
     def before_state_a2_to_a3(self, event):
-        self._events_called.add('before_state_a2_to_a3')
+        self._events_called.append('before_state_a2_to_a3')
 
     def on_exit_state_a2(self, event):
-        self._events_called.add('on_exit_state_a2')
+        self._events_called.append('on_exit_state_a2')
 
     def on_state_a2_to_a3(self, event):
-        self._events_called.add('on_state_a2_to_a3')
+        self._events_called.append('on_state_a2_to_a3')
 
     def on_enter_state_a3(self, event):
-        self._events_called.add('on_enter_state_a3')
+        self._events_called.append('on_enter_state_a3')
 
     def after_state_a2_to_a3(self, event):
-        self._events_called.add('after_state_a2_to_a3')
+        self._events_called.append('after_state_a2_to_a3')
 
 
 class TestNormalMachineWithAllEvents(TestCase):
-    def test_machine_without_transition_condition(self):
+    def test_machine_with_all_event_callbacks_implemented(self):
         did_fail = False
         sm = NormalStateMachineWithAllEvents(name="Complete machine")
         try:
@@ -249,13 +265,17 @@ class TestNormalMachineWithAllEvents(TestCase):
             self.assertEqual(sm.state,
                              NormalStateMachineWithAllEvents.state_a3)
         except Exception as e:
+            # As a general check... this shouldn't be reached
             did_fail = True
 
         self.assertFalse(did_fail)
-        self.assertEqual(sm._events_called - ALL_EXPECTED_EVENTS, set())
 
+        # order doesn't matter with set subtraction
+        self.assertEqual(set(sm._events_called) - set(ALL_EXPECTED_EVENTS), set())
 
-######################################################################
+        # order matters when comparing as lists
+        for idx, event in enumerate(ALL_EXPECTED_EVENTS):
+            self.assertEqual(sm._events_called[idx], event)
 
 
 from examples.gumball_machine import *
