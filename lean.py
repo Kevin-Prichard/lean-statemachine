@@ -121,6 +121,8 @@ class StateMachine(object):
                  desc: Text = None,
                  model: object = None,
                  *args, **kwargs):
+
+        # There is only one state...
         self._state = None
         self._name = name
         self._desc = desc
@@ -144,6 +146,7 @@ class StateMachine(object):
 
     @property
     def state(self) -> State:
+        # There is only one state
         return self._state
 
     @classmethod
@@ -239,8 +242,6 @@ class StateMachine(object):
         for trans in candidates:
             if condition_fn := getattr(klass, trans.cond, None):
                 if condition_fn(self, trans):
-                    did_transition = True
-
                     # Entered a transition with matching condition..
                     # Let's execute any defined callbacks. with 'self' as context
                     for callback in trans.callbacks:
@@ -248,6 +249,7 @@ class StateMachine(object):
 
                     # Move to the next state
                     self._state = trans.state2
+                    did_transition = True
 
                     # Transition complete - we do not look for other matching
                     # transitions
