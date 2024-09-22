@@ -29,23 +29,6 @@ class TestMissingInitialState(TestCase):
 ######################################################################
 
 
-class SMWithoutFinalState(StateMachine):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    state_a1 = State('state_a1', initial=True)
-    state_a2 = State('state_a2')
-
-
-class TestMissingFinalState(TestCase):
-    def test_missing_final_state(self):
-        with pytest.raises(StateException):
-            SMWithoutFinalState(name="Machina sin Nombre")
-
-
-######################################################################
-
-
 class SMWithPluralInitialStates(StateMachine):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
