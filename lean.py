@@ -4,7 +4,8 @@ import logging
 from threading import Lock
 from typing import Callable, Text, Union, Any, Set
 
-GLOBAL_LOGGING_LEVEL=logging.INFO
+
+GLOBAL_LOGGING_LEVEL = logging.INFO
 logging.basicConfig(level=GLOBAL_LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
 
@@ -213,7 +214,7 @@ class StateMachine(object):
                 cls._transitions[attrib.state1].add(attrib)
 
                 # Collect callbacks as partials, in proper firing order.
-                # At runtime the 'self' param will be added to provide correct context
+                # At runtime the 'self' param is added for correct context
                 callbacks = []
                 setattr(attrib, 'callbacks', callbacks)
                 for event_type, actor in [("before", attrib),
@@ -267,7 +268,7 @@ class StateMachine(object):
             if condition_fn := getattr(klass, trans.cond, None):
                 if condition_fn(self, trans):
                     # Entered a transition with matching condition..
-                    # Let's execute any defined callbacks. with 'self' as context
+                    # Let's execute defined callbacks, with 'self' as context
                     for callback in trans.callbacks:
                         callback(self=self)
 
@@ -307,8 +308,10 @@ class StateMachine(object):
 class TransitionException(Exception):
     pass
 
+
 class StateException(Exception):
     pass
+
 
 class StateMachineException(Exception):
     pass
