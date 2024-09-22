@@ -87,7 +87,7 @@ def get_machine_ast(source_path, machine_name) -> ast.ClassDef:
 def get_method_body(klass: ast.ClassDef, method_name: Text) -> Text:
     for node in klass.body:
         if isinstance(node, ast.FunctionDef) and node.name == method_name:
-            return ast.unparse(node.body[0].value)
+            return ast.unparse(node.body).replace('\n', '\\n')
 
 
 def walk_transition_graph(state: State,
