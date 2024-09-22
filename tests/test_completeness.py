@@ -2,11 +2,9 @@ import logging
 from unittest import TestCase
 
 from examples.gumball_machine import (
-    COIN_SLOT_OCCUPIED, COIN_SLOT_BAD, COIN_SLOT_EMPTY, GumballMachineHardware,
-    GumballStateMachine)
+    COIN_SLOT_OCCUPIED, GumballMachineHardware, GumballStateMachine)
 from lean import (
-    StateMachine, State, StateException, TransitionException,
-    StateMachineException)
+    StateMachine, State, StateException, TransitionException)
 
 import pytest
 
@@ -52,6 +50,7 @@ class SMWithoutTransitions(StateMachine):
 
     state_a1 = State('state_a1', initial=True)
     state_a2 = State('state_a2', final=True)
+
 
 class TestAbnormalMachines(TestCase):
     def test_machine_without_transitions(self):
@@ -151,7 +150,7 @@ class TestNormalMachine(TestCase):
             self.assertEqual(sm.state, NormalStateMachine.state_a2)
             sm.cycle()
             self.assertEqual(sm.state, NormalStateMachine.state_a3)
-        except Exception as e:
+        except Exception:
             did_fail = True
         self.assertFalse(did_fail)
 
@@ -174,6 +173,7 @@ ALL_EXPECTED_EVENTS = [
     "on_enter_state_a3",
 ]
 
+
 class NormalStateMachineWithAllEvents(StateMachine):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -188,7 +188,7 @@ class NormalStateMachineWithAllEvents(StateMachine):
 
     """
     Every event callback is implemented, and every callback logs its name in
-    order.  This enables testing that all callbacks were called, and called 
+    order.  This enables testing that all callbacks were called, and called
     in the correct order.
     """
     def on_enter_state_a1(self, event):
@@ -250,14 +250,15 @@ class TestNormalMachineWithAllEvents(TestCase):
             sm.cycle()
             self.assertEqual(sm.state,
                              NormalStateMachineWithAllEvents.state_a3)
-        except Exception as e:
+        except Exception:
             # As a general check... this shouldn't be reached
             did_fail = True
 
         self.assertFalse(did_fail)
 
         # order doesn't matter with set subtraction
-        self.assertEqual(set(sm._events_called) - set(ALL_EXPECTED_EVENTS), set())
+        self.assertEqual(
+            set(sm._events_called) - set(ALL_EXPECTED_EVENTS), set())
 
         # order matters when comparing as lists
         for idx, event in enumerate(ALL_EXPECTED_EVENTS):
@@ -272,7 +273,7 @@ class TestGumballStateMachine(TestCase):
         # Get a gumball machine hardware API
         self.gumball_hw = GumballMachineHardware()
 
-        # Create a gumball machine state machine with the hardware API as context
+        # Create a gumball machine state machine with hardware API as context
         self.gumball_sm = GumballStateMachine(
             name="Gumball state machine controller",
             desc="Demo of a gumball machine controlled by lean-statemachine",
@@ -290,7 +291,7 @@ class TestGumballStateMachine(TestCase):
         # Simulate the user dropping a coin, by telling the gumball hardware
         self.gumball_hw.coin_slot(COIN_SLOT_OCCUPIED)
 
-        # Cycle the state machine, which causes it to check the hardware API's new state
+        # Cycle the state machine, causing it to check hardware API's new state
         self.gumball_sm.cycle()
 
         # The
