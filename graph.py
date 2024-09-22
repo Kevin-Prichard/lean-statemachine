@@ -48,7 +48,7 @@ def get_args(argv: List[str]) -> Tuple[argparse.Namespace,
     parser.add_argument(
         '--module', '-m', dest='module_name', type=str,
         action='store', default='examples.gumball_machine',
-        help='The fully-qualified modyke name where your StateMachine '
+        help='The fully-qualified module name where your StateMachine '
              'subclass is defined, e.g. "examples.gumball_machine".',)
     parser.add_argument(
         '--format', '-f', dest='format', type=str, action='store',
