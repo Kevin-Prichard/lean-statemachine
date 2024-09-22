@@ -1,7 +1,9 @@
 import logging
 from unittest import TestCase
 
-from examples.gumball_machine import *
+from examples.gumball_machine import (
+    COIN_SLOT_OCCUPIED, COIN_SLOT_BAD, COIN_SLOT_EMPTY, GumballMachineHardware,
+    GumballStateMachine)
 from lean import (
     StateMachine, State, StateException, TransitionException,
     StateMachineException)
@@ -303,7 +305,7 @@ class TestGumballStateMachine(TestCase):
                          GumballStateMachine.ready)
 
         # Simulate the user dropping a coin, by telling the gumball hardware
-        self.gumball_hw.coin_slot(COIN_DROP)
+        self.gumball_hw.coin_slot(COIN_SLOT_OCCUPIED)
 
         # Cycle the state machine, which causes it to check the hardware API's new state
         self.gumball_sm.cycle()
