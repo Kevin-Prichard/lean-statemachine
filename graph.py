@@ -16,6 +16,7 @@ from lean import StateMachine, State
 
 DEFAULT_PLANTUML_SERVER = 'http://www.plantuml.com/plantuml/img/'
 
+
 class GraphFormat(Enum):
     PLANTUML = 'plantuml'
     ASCII = 'ascii'
@@ -24,7 +25,10 @@ class GraphFormat(Enum):
     JPEG = 'jpeg'
     DEFAULT = SVG
 
+
 args = None
+
+
 def get_args(argv: List[str]) -> Tuple[argparse.Namespace,
                                        argparse.ArgumentParser]:
     global args
@@ -33,19 +37,19 @@ def get_args(argv: List[str]) -> Tuple[argparse.Namespace,
         description='Generatee a graph of a Lean StateMachine in a variety '
                     'of formats')
     parser.add_argument(
-         '-s', '--source', dest='source_path', type=str, action='store',
-        default='examples/gumball_machine.py',
+        '-s', '--source', dest='source_path', type=str,
+        action='store', default='examples/gumball_machine.py',
         help='Path to the source file containing the StateMachine subclass.')
     parser.add_argument(
-        '--class', '-c', dest='machine_class', type=str, action='store',
+        '--class', '-c', dest='machine_class', type=str,
+        action='store', default='GumballStateMachine',
         help='The class name of the StateMachine class to graph, '
-             'e.g. "GumballStateMachine"',
-        default='GumballStateMachine',)
+             'e.g. "GumballStateMachine"',)
     parser.add_argument(
-        '--module', '-m', dest='module_name', type=str, action='store',
-        help='The fully-qualified modyke name where your StateMachine subclass is defined, '
-             'e.g. "examples.gumball_machine".',
-        default='examples.gumball_machine',)
+        '--module', '-m', dest='module_name', type=str,
+        action='store', default='examples.gumball_machine',
+        help='The fully-qualified modyke name where your StateMachine '
+             'subclass is defined, e.g. "examples.gumball_machine".',)
     parser.add_argument(
         '--format', '-f', dest='format', type=str, action='store',
         default=GraphFormat.DEFAULT,)
@@ -91,10 +95,15 @@ def walk_transition_graph(state: State,
         tbody = get_method_body(mach_ast, trans.cond)
         buf.append(f"state {state.name} as \"{state.name}\"")
         buf.append(f"state {trans.state2.name} as \"{trans.state2.name}\"")
-        buf.append(f"{state.name} --> {trans.state2.name} : {trans.name}:\\n  {tbody}")
+        buf.append(f"{state.name} --> {trans.state2.name} : "
+                   f"{trans.name}:\\n  {tbody}")
         pairs_visited.add((state, trans.state2))
         if not trans.state2.final:
-            walk_transition_graph(trans.state2, transitions, buf, pairs_visited, mach_ast)
+            walk_transition_graph(trans.state2,
+                                  transitions,
+                                  buf,
+                                  pairs_visited,
+                                  mach_ast)
 
 
 def machine2plantuml(source_path: Text,
