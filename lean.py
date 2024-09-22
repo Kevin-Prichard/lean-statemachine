@@ -244,7 +244,7 @@ class StateMachine(object):
                             "you called super().__init__(*args, **kwargs) "
                             "from your subclass __init__ method.")
 
-                    if not klass._transitions:
+                    if not klass.transitions:
                         raise TransitionException(
                             "No transitions were found, or your StateMachine "
                             "subclass is not calling super().__init__(*args, "
@@ -257,7 +257,7 @@ class StateMachine(object):
 
         # Get the transitions for the current state - there must be some,
         # unless the current state is marked final
-        if not (candidates := klass._transitions.get(self._state, None)):
+        if not (candidates := klass.transitions.get(self._state, None)):
             raise TransitionException(
                 f"No transitions found from state: {self._state}")
 
