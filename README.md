@@ -46,6 +46,14 @@ class CoinToss(StateMachine):
         print('Tails!')
 ```
 
+Running this state machine through graph.py produces the following diagram-
+
+```bash
+$ ./graph.py -s examples/coin_flip.py -c CoinToss -m examples.coin_flip -o docs/coin_flip.png
+```
+
+![Coin Flip State Machine](docs/coin_flip.png)
+
 
 ## Additional examples
 For examples, see the examples folder.  Currently two example state machines are available-
@@ -56,3 +64,5 @@ examples/door.py
 In the GumballStateMachine example, we have a hardware API simulation layer called GumballMachineHardware, which provides a hardware control context / reference to an API external to the state machine subclass.  This allows callbacks to query physical state in order to prompt state change in the state machine, as well as activate API and/or hardware features in response to the state machine's events and changing state.
 
 This keeps intact the boundary between state machines' internal state tracking, and the actual implementation of the processes and/or physical machines that they represent.
+
+![Gumball Machine State Magine](docs/gumball_machine.png)
