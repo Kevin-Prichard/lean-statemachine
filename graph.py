@@ -109,6 +109,8 @@ def machine2plantuml(source_path: Text,
 
     # static initialize the state machine
     machine.callbacks_init()
+
+    # extract its states and transitions
     states = machine.states
     transitions = machine.transitions
     state_initial, state_final = None, None
@@ -118,6 +120,7 @@ def machine2plantuml(source_path: Text,
         if state.final:
             state_final = state
 
+    # build the PlantUML markup
     buf = ["@startuml",
            f"title State Diagram for {machine_class}",
            f"state {state_initial.name}",
@@ -130,6 +133,8 @@ def machine2plantuml(source_path: Text,
         buf.append(f"{state_final.name} --> {state_initial.name}")
         buf.append(f"{state_final.name} --> [*]")
     buf.append("@enduml")
+
+    # done
     return "\n".join(buf)
 
 
