@@ -1,11 +1,8 @@
-from asyncio import iscoroutine
 from collections import defaultdict as dd
-from functools import reduce, partial
+from functools import partial
 import logging
 from threading import Lock
-from types import coroutine
-from typing import List, Callable, Text, Union, Mapping, Any
-
+from typing import Callable, Text, Union, Any, Set
 
 GLOBAL_LOGGING_LEVEL=logging.INFO
 logging.basicConfig(level=GLOBAL_LOGGING_LEVEL)
@@ -41,6 +38,10 @@ class State(object):
     @property
     def name(self) -> Text:
         return self._name
+
+    @property
+    def desc(self) -> Text:
+        return self._desc or f"[{self._name}]"
 
     @property
     def initial(self) -> bool:
@@ -88,8 +89,12 @@ class Transition(object):
         return self._name
 
     @name.setter
-    def name(self, name: Text):
+    def name(self, name):
         self._name = name
+
+    @property
+    def desc(self) -> Text:
+        return self._desc or f"[{self._name}]"
 
     @property
     def state1(self) -> State:
@@ -113,6 +118,7 @@ class Transition(object):
 
 
 class StateMachine(object):
+    _states = set()
     _transitions = dd(set)
     _initial_state = None
 
@@ -146,8 +152,18 @@ class StateMachine(object):
 
     @property
     def state(self) -> State:
-        # There is only one state
+        # There is only one state at a time
         return self._state
+
+    @classmethod
+    @property
+    def states(cls) -> Set[State]:
+        return cls._states
+
+    @classmethod
+    @property
+    def transitions(cls) -> dd[State, Set]:
+        return cls._transitions
 
     @classmethod
     def callbacks_init(cls):
@@ -161,8 +177,14 @@ class StateMachine(object):
         members = dir(cls)
         final_states = 0
 
+        # just in case we're re-initializing, we don't want these class props
+        # to pile up with dupes
+        cls._states.clear()
+        cls._transitions.clear()
+
         for name in filter(lambda n: not n.startswith('_'), members):
             attrib = getattr(cls, name)
+
             if isinstance(attrib, State):
                 if attrib.initial:
                     if cls._initial_state:
@@ -173,6 +195,7 @@ class StateMachine(object):
                     final_states += 1
                 if not attrib.name:
                     raise StateException("State must have a name")
+                cls._states.add(attrib)
 
             elif isinstance(attrib, Transition):
                 if not attrib.name:
@@ -183,11 +206,14 @@ class StateMachine(object):
                         f"Transition {attrib.name} has no 'cond' param, or "
                         f"condition method "
                         f"'{cls.__name__}.{cond_name}' needs implementing")
+                if attrib in cls._transitions[attrib.state1]:
+                    raise TransitionException(
+                        f"Duplicate transition {attrib.name} from "
+                        f"{attrib.state1} to {attrib.state2}")
                 cls._transitions[attrib.state1].add(attrib)
 
                 # Collect callbacks as partials, in proper firing order.
-                # At runtime the 'self' param will be added to provide correct
-                # context
+                # At runtime the 'self' param will be added to provide correct context
                 callbacks = []
                 setattr(attrib, 'callbacks', callbacks)
                 for event_type, actor in [("before", attrib),
@@ -201,8 +227,6 @@ class StateMachine(object):
 
         if not cls._initial_state:
             raise StateException("One initial state must be defined")
-        if not final_states:
-            raise StateException("At least one final state must be defined")
         if not cls._transitions:
             raise TransitionException("No transitions defined")
 
