@@ -1,0 +1,26 @@
+@startuml
+title State Diagram for GumballStateMachine
+state ready
+[*] --> ready
+state coin_dropped as "coin_dropped"
+state crank_turned as "crank_turned"
+coin_dropped --> crank_turned : cranking:\n  self._model.crank('position') != 0
+state crank_turned as "crank_turned"
+state gumball_dispensed as "gumball_dispensed"
+crank_turned --> gumball_dispensed : dispensing:\n  self._model.gumball_dispensed() is True
+state gumball_dispensed as "gumball_dispensed"
+state crank_returned as "crank_returned"
+gumball_dispensed --> crank_returned : finishing:\n  self._model.crank('position') == 0
+state ready as "ready"
+state coin_dropped as "coin_dropped"
+ready --> coin_dropped : paying:\n  self._model.coin_slot('read') == COIN_SLOT_OCCUPIED
+state ready as "ready"
+state coin_rejected as "coin_rejected"
+ready --> coin_rejected : rejecting_payment:\n  self._model.coin_slot('read') == COIN_SLOT_BAD
+state coin_rejected as "coin_rejected"
+state ready as "ready"
+coin_rejected --> ready : reset_payment:\n  self._model.coin_slot('read') is COIN_SLOT_EMPTY
+state crank_returned
+crank_returned --> ready
+crank_returned --> [*]
+@enduml
