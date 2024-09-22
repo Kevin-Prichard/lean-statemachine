@@ -120,7 +120,7 @@ class Transition(object):
 
 class StateMachine(object):
     _states = set()
-    _transitions = dd(set)
+    _transitions = dd(list)
     _initial_state = None
 
     def __init__(self,
@@ -175,7 +175,7 @@ class StateMachine(object):
         # StateMachine subclass will share the same callback methods, and this
         # ensures that we always provide the correct instance passed as 'self'.
         cls._initial_state = None
-        members = dir(cls)
+        members = cls.__dict__.keys()
         final_states = 0
 
         # just in case we're re-initializing, we don't want these class props
@@ -211,7 +211,7 @@ class StateMachine(object):
                     raise TransitionException(
                         f"Duplicate transition {attrib.name} from "
                         f"{attrib.state1} to {attrib.state2}")
-                cls._transitions[attrib.state1].add(attrib)
+                cls._transitions[attrib.state1].append(attrib)
 
                 # Collect callbacks as partials, in proper firing order.
                 # At runtime the 'self' param is added for correct context
