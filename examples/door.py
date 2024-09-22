@@ -1,8 +1,6 @@
 import logging
 from enum import Enum
 
-from box import Box
-
 from lean import (StateMachine, State)
 
 
