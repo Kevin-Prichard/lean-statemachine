@@ -61,6 +61,12 @@ def get_args(argv: List[str]) -> Tuple[argparse.Namespace,
         '--out', '-o', dest='out', type=str, action='store',
         default=f"{os.path.abspath(os.path.curdir)}/out.png",
         help='Output filename for generated PlantUML image')
+    parser.add_argument(
+        '--print', '-p', dest='print', action='store_true',
+        default=False,
+        help='Print the PlantUML markup to -o file, instead '
+             'of producing an image file',
+    )
 
     args = parser.parse_args(argv)
     return args, parser
@@ -163,7 +169,11 @@ if __name__ == "__main__":
         source_path=args.source_path,
         machine_class=args.machine_class,
         module_name=args.module_name)
-    plantuml2image(
-        plantuml_markup=plant_markup,
-        server_url=args.server_url,
-        output_pathname=args.out)
+    if args.print:
+        with open(args.out, "w") as out_file:
+            out_file.write(plant_markup)
+    else:
+        plantuml2image(
+            plantuml_markup=plant_markup,
+            server_url=args.server_url,
+            output_pathname=args.out)
