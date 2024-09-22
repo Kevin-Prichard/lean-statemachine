@@ -19,11 +19,14 @@ class GumballMachineHardware:
     def __init__(self):
         self._hardware = Box(
             coin_slot=False,
-            speaker_play=lambda filename: logger.info("Speaker plays %s", filename),
+            speaker_play=self.play_sound,
             crank_position=0,
             leds=lambda *args: logger.info("LEDs play: %s", str(args))
 
         )
+
+    def play_sound(self, sound_file):
+        logger.info("Speaker plays %s", sound_file)
 
     def coin_slot(self, action):
         if action == "read":
