@@ -79,7 +79,8 @@ def get_machine_ast(source_path, machine_name) -> ast.ClassDef:
         if isinstance(node, ast.ClassDef):
             bases = getattr(node, 'bases', [])
             for base in bases:
-                if base.id == 'StateMachine' and node.name == machine_name:
+                if (getattr(base, 'id', None) == 'StateMachine' and
+                        node.name == machine_name):
                     return node
 
 
