@@ -3,15 +3,17 @@ import logging
 from box import Box
 
 from lean import (
-    StateMachine, State, StateException, TransitionException,
-    StateMachineException)
+    StateMachine, State)
 
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 
-COIN_DROP = "coin_inserted"
+COIN_SLOT_OCCUPIED = "coin_inserted"
+COIN_SLOT_BAD = "coin_bad"
+COIN_SLOT_EMPTY = "empty"
+
 
 class GumballMachineHardware:
     def __init__(self):
@@ -52,6 +54,8 @@ class GumballStateMachine(StateMachine):
                        'purchase cycle')
     coin_dropped = State('coin_dropped',
                          'A coin has been inserted into the machine')
+    coin_rejected = State('coin_rejected',
+                          desc='The coin has been rejected')
     crank_turned = State('crank_turned',
                          'The crank has been turned, and the '
                          'machine is '
@@ -65,6 +69,12 @@ class GumballStateMachine(StateMachine):
     paying = ready.to(
         coin_dropped, cond='is_coin_inserted',
         desc='A coin has been inserted into the machine')
+    rejecting_payment = ready.to(
+        coin_rejected, cond='is_coin_recognized',
+        desc='The coin has been rejected')
+    reset_payment = coin_rejected.to(
+        ready, cond='is_coin_returned',
+        desc='The coin has been returned')
     cranking = coin_dropped.to(
         crank_turned, cond='is_crank_turning',
         desc='The crank has been turned')
@@ -76,7 +86,13 @@ class GumballStateMachine(StateMachine):
         desc='The crank has been returned to its original position')
 
     def is_coin_inserted(self, event):
-        return self._model.coin_slot("read") == COIN_DROP
+        return self._model.coin_slot("read") == COIN_SLOT_OCCUPIED
+
+    def is_coin_recognized(self, event):
+        return self._model.coin_slot("read") == COIN_SLOT_BAD
+
+    def is_coin_returned(self, event):
+        return self._model.coin_slot("read") is COIN_SLOT_EMPTY
 
     def on_paying(self, event):
         logger.info("Coin being inserted")
@@ -93,7 +109,7 @@ class GumballStateMachine(StateMachine):
         self._model.turn_crank(0)
 
     def was_gumball_dispensed(self, event):
-        return self._model.gumball_dispensed()
+        return self._model.gumball_dispensed() is True
 
     def is_crank_returned(self, event):
         return self._model.crank("position") == 0
